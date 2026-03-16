@@ -1,4 +1,4 @@
-# @wrxck/react-guidetour
+# @matthesketh/react-guidetour
 
 React 19 guided tour component. A modernised fork of [react-joyride](https://github.com/gilbarbara/react-joyride) by Gil Barbara.
 
@@ -14,7 +14,7 @@ react-joyride v2.9.3 uses `ReactDOM.unmountComponentAtNode()` and `ReactDOM.unst
 ## Install
 
 ```bash
-npm install @wrxck/react-guidetour
+npm install @matthesketh/react-guidetour
 ```
 
 ## Usage
@@ -22,7 +22,7 @@ npm install @wrxck/react-guidetour
 The API is the same as react-joyride. See the [react-joyride documentation](https://docs.react-joyride.com/) for full usage details.
 
 ```tsx
-import Joyride from '@wrxck/react-guidetour';
+import Joyride from '@matthesketh/react-guidetour';
 
 const steps = [
   {
