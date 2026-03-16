@@ -1,0 +1,76 @@
+{
+  "name": "@wrxck/react-guidetour",
+  "version": "1.0.0",
+  "description": "React 19 guided tour component. Modernised fork of react-joyride by Gil Barbara.",
+  "author": "Matt Hesketh",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wrxck/react-guidetour.git"
+  },
+  "keywords": [
+    "react",
+    "react-component",
+    "tooltips",
+    "guided-tour",
+    "walkthroughs",
+    "tour",
+    "react-19"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "exports": {
+    "import": "./dist/index.mjs",
+    "require": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "dependencies": {
+    "@gilbarbara/deep-equal": "^0.3.1",
+    "deep-diff": "^1.0.2",
+    "deepmerge": "^4.3.1",
+    "is-lite": "^1.2.1",
+    "react-floater": "^0.10.0",
+    "react-innertext": "^1.1.5",
+    "scroll": "^3.0.1",
+    "scrollparent": "^2.1.0",
+    "tree-changes": "^0.11.2",
+    "type-fest": "^4.27.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/scroll": "^3.0.3",
+    "@types/scrollparent": "^2.0.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3"
+  },
+  "tsup": {
+    "dts": true,
+    "entry": [
+      "src/index.tsx"
+    ],
+    "format": [
+      "cjs",
+      "esm"
+    ],
+    "target": "es2018",
+    "sourcemap": true,
+    "splitting": false
+  },
+  "scripts": {
+    "build": "tsup",
+    "watch": "tsup --watch"
+  }
+}
