@@ -348,6 +348,7 @@ function Joyride(inputProps: Props) {
 
     content.step = (
       <Step
+        key={index}
         {...state}
         callback={triggerCallback}
         continuous={continuous}

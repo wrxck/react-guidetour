@@ -1,6 +1,6 @@
 {
   "name": "@matthesketh/react-guidetour",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "React 19 guided tour component. Modernised fork of react-joyride by Gil Barbara.",
   "author": "Matt Hesketh",
   "license": "MIT",
