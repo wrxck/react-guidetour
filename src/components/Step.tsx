@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react';
-import Floater, { Props as FloaterProps } from 'react-floater';
+import {
+  useFloating,
+  autoUpdate,
+  flip,
+  shift,
+  offset as offsetMiddleware,
+  arrow as arrowMiddleware,
+  Placement,
+} from '@floating-ui/react';
 import is from 'is-lite';
 import treeChanges from 'tree-changes';
 
@@ -14,6 +22,8 @@ import { StepProps } from '~/types';
 
 import Beacon from './Beacon';
 import Tooltip from './Tooltip/index';
+
+const ARROW_SIZE = 10;
 
 export default function JoyrideStep(props: StepProps) {
   const {
@@ -36,41 +46,52 @@ export default function JoyrideStep(props: StepProps) {
   const scopeRef = useRef<Scope | null>(null);
   const tooltipRef = useRef<HTMLElement | null>(null);
   const previousPropsRef = useRef(props);
+  const arrowRef = useRef<HTMLDivElement | null>(null);
 
   const setTooltipRef = useCallback((element: HTMLElement) => {
     tooltipRef.current = element;
   }, []);
 
-  const handleClickHoverBeacon = useCallback((event: React.MouseEvent<HTMLElement>) => {
-    if (event.type === 'mouseenter' && step.event !== 'hover') {
-      return;
-    }
+  const handleClickHoverBeacon = useCallback(
+    (event: React.MouseEvent<HTMLElement>) => {
+      if (event.type === 'mouseenter' && step.event !== 'hover') {
+        return;
+      }
 
-    store.update({ lifecycle: LIFECYCLE.TOOLTIP });
-  }, [step.event, store]);
+      store.update({ lifecycle: LIFECYCLE.TOOLTIP });
+    },
+    [step.event, store],
+  );
 
-  const setPopper: FloaterProps['getPopper'] = useCallback((popper: any, type: any) => {
-    if (type === 'wrapper') {
-      store.setPopper('beacon', popper);
-    } else {
-      store.setPopper('tooltip', popper);
-    }
+  const target = getElement(step.target);
+  const isOpen = hideBeacon(step) || lifecycle === LIFECYCLE.TOOLTIP;
+  const isCentered = step.placement === 'center';
 
-    if (
-      store.getPopper('beacon') &&
-      (store.getPopper('tooltip') || step.placement === 'center') &&
-      lifecycle === LIFECYCLE.INIT
-    ) {
-      store.update({
-        action,
-        lifecycle: LIFECYCLE.READY,
-      });
-    }
+  const floatingPlacement: Placement =
+    isCentered || step.placement === 'auto' ? 'bottom' : (step.placement as Placement);
 
-    if (step.floaterProps?.getPopper) {
-      step.floaterProps.getPopper(popper, type);
-    }
-  }, [action, lifecycle, step.placement, step.floaterProps, store]);
+  const totalOffset = isOpen
+    ? step.offset + (step.spotlightPadding ?? 0)
+    : step.offset;
+
+  const {
+    refs,
+    floatingStyles,
+    middlewareData,
+    placement: computedPlacement,
+  } = useFloating({
+    placement: floatingPlacement,
+    elements: {
+      reference: target,
+    },
+    middleware: [
+      offsetMiddleware(totalOffset),
+      flip(),
+      shift({ padding: 5 }),
+      arrowMiddleware({ element: arrowRef }),
+    ],
+    whileElementsMounted: autoUpdate,
+  });
 
   // Log on mount
   useEffect(() => {
@@ -87,6 +108,16 @@ export default function JoyrideStep(props: StepProps) {
       scopeRef.current?.removeScope();
     };
   }, []);
+
+  // Trigger READY when target is available (replaces setPopper/getPopper callback)
+  useEffect(() => {
+    if (target && lifecycle === LIFECYCLE.INIT) {
+      store.update({
+        action,
+        lifecycle: LIFECYCLE.READY,
+      });
+    }
+  }, [target, lifecycle, action, store]);
 
   // componentDidUpdate equivalent
   useEffect(() => {
@@ -195,61 +226,123 @@ export default function JoyrideStep(props: StepProps) {
 
     if (changedFrom('lifecycle', [LIFECYCLE.TOOLTIP, LIFECYCLE.INIT], LIFECYCLE.INIT)) {
       scopeRef.current?.removeScope();
-      store.cleanupPoppers();
     }
 
     previousPropsRef.current = props;
   });
 
-  const target = getElement(step.target);
-
   if (!validateStep(step) || !is.domElement(target)) {
     return null;
   }
 
-  const isOpen = hideBeacon(step) || lifecycle === LIFECYCLE.TOOLTIP;
+  const zIndex = (step.styles.options.zIndex ?? 100) + 100;
+  const arrowColor = step.styles.options.arrowColor ?? '#fff';
 
-  const TooltipComponent = () => (
-    <Tooltip
-      continuous={continuous}
-      helpers={helpers}
-      index={index}
-      isLastStep={index + 1 === size}
-      setTooltipRef={setTooltipRef}
-      size={size}
-      step={step}
-    />
-  );
+  // Center placement: render tooltip fixed in viewport center
+  if (isCentered && isOpen) {
+    return (
+      <div key={`JoyrideStep-${index}`} className="react-joyride__step">
+        <div
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex,
+          }}
+        >
+          <Tooltip
+            continuous={continuous}
+            helpers={helpers}
+            index={index}
+            isLastStep={index + 1 === size}
+            setTooltipRef={setTooltipRef}
+            size={size}
+            step={step}
+          />
+        </div>
+      </div>
+    );
+  }
 
-  // Omit content/component from step.floaterProps to avoid conflict with RequireExactlyOne
-  const { content: _c, component: _comp, ...safeFloaterProps } = (step.floaterProps ?? {}) as any;
+  if (isCentered) {
+    return null;
+  }
+
+  // Compute arrow styles for tooltip
+  const arrowSide = computedPlacement.split('-')[0];
+  const staticSide = ({ top: 'bottom', right: 'left', bottom: 'top', left: 'right' } as const)[
+    arrowSide as 'top' | 'right' | 'bottom' | 'left'
+  ]!;
+  const arrowStyles: React.CSSProperties = {
+    position: 'absolute',
+    width: 0,
+    height: 0,
+    borderStyle: 'solid',
+    pointerEvents: 'none',
+    ...(middlewareData.arrow?.x != null ? { left: middlewareData.arrow.x } : {}),
+    ...(middlewareData.arrow?.y != null ? { top: middlewareData.arrow.y } : {}),
+    [staticSide]: -ARROW_SIZE,
+  };
+
+  switch (arrowSide) {
+    case 'top':
+      arrowStyles.borderWidth = `${ARROW_SIZE}px ${ARROW_SIZE}px 0`;
+      arrowStyles.borderColor = `${arrowColor} transparent transparent`;
+      break;
+    case 'bottom':
+      arrowStyles.borderWidth = `0 ${ARROW_SIZE}px ${ARROW_SIZE}px`;
+      arrowStyles.borderColor = `transparent transparent ${arrowColor}`;
+      break;
+    case 'left':
+      arrowStyles.borderWidth = `${ARROW_SIZE}px 0 ${ARROW_SIZE}px ${ARROW_SIZE}px`;
+      arrowStyles.borderColor = `transparent transparent transparent ${arrowColor}`;
+      break;
+    case 'right':
+      arrowStyles.borderWidth = `${ARROW_SIZE}px ${ARROW_SIZE}px ${ARROW_SIZE}px 0`;
+      arrowStyles.borderColor = `transparent ${arrowColor} transparent transparent`;
+      break;
+  }
 
   return (
     <div key={`JoyrideStep-${index}`} className="react-joyride__step">
-      <Floater
-        {...safeFloaterProps}
-        component={TooltipComponent}
-        debug={debug}
-        getPopper={setPopper}
-        id={`react-joyride-step-${index}`}
-        open={isOpen}
-        placement={step.placement}
-        target={step.target}
-      >
-        <Beacon
-          beaconComponent={step.beaconComponent}
-          continuous={continuous}
-          index={index}
-          isLastStep={index + 1 === size}
-          locale={step.locale}
-          nonce={nonce}
-          onClickOrHover={handleClickHoverBeacon}
-          shouldFocus={shouldScroll}
-          size={size}
-          step={step}
-          styles={step.styles}
-        />
-      </Floater>
+      {!isOpen && (
+        <div ref={refs.setFloating} style={floatingStyles}>
+          <Beacon
+            beaconComponent={step.beaconComponent}
+            continuous={continuous}
+            index={index}
+            isLastStep={index + 1 === size}
+            locale={step.locale}
+            nonce={nonce}
+            onClickOrHover={handleClickHoverBeacon}
+            shouldFocus={shouldScroll}
+            size={size}
+            step={step}
+            styles={step.styles}
+          />
+        </div>
+      )}
+      {isOpen && (
+        <div
+          ref={refs.setFloating}
+          style={{
+            ...floatingStyles,
+            zIndex,
+          }}
+        >
+          <Tooltip
+            continuous={continuous}
+            helpers={helpers}
+            index={index}
+            isLastStep={index + 1 === size}
+            setTooltipRef={setTooltipRef}
+            size={size}
+            step={step}
+          />
+          <div ref={arrowRef} style={arrowStyles} />
+        </div>
+      )}
     </div>
   );
 }

@@ -2,13 +2,6 @@ import { noop } from '~/modules/helpers';
 
 import { Locale, Props, Step } from '~/types';
 
-export const defaultFloaterProps = {
-  wrapperOptions: {
-    offset: -18,
-    position: true,
-  },
-};
-
 export const defaultLocale: Locale = {
   back: 'Back',
   close: 'Close',

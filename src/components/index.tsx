@@ -325,38 +325,12 @@ function Joyride(inputProps: Props) {
         debug,
       });
 
-      const beaconPopper = store.getPopper('beacon');
-      const tooltipPopper = store.getPopper('tooltip');
-
-      if (lifecycle === LIFECYCLE.BEACON && beaconPopper) {
-        const placement = beaconPopper.state?.placement ?? '';
-        const popperTop = beaconPopper.state?.rects?.popper?.y ?? 0;
-
-        if (!['bottom'].includes(placement) && !hasCustomScroll) {
-          scrollY = Math.floor(popperTop - scrollOffset);
-        }
-      } else if (lifecycle === LIFECYCLE.TOOLTIP && tooltipPopper) {
-        const placement = tooltipPopper.state?.placement ?? '';
-        const popperTop = tooltipPopper.state?.rects?.popper?.y ?? 0;
-        const flipped = tooltipPopper.state?.modifiersData?.flip?.overflows != null;
-
-        if (['top', 'right', 'left'].includes(placement) && !flipped && !hasCustomScroll) {
-          scrollY = Math.floor(popperTop - scrollOffset);
-        } else {
-          scrollY -= step.spotlightPadding;
-        }
-      }
-
+      // Adjust for spotlight padding
+      scrollY -= step.spotlightPadding;
       scrollY = scrollY >= 0 ? scrollY : 0;
 
       if (status === STATUS.RUNNING) {
-        scrollTo(scrollY, { element: scrollParent as Element, duration: scrollDuration }).then(
-          () => {
-            setTimeout(() => {
-              store.getPopper('tooltip')?.update();
-            }, 10);
-          },
-        );
+        scrollTo(scrollY, { element: scrollParent as Element, duration: scrollDuration });
       }
     }
   }

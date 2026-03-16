@@ -1,5 +1,4 @@
 import { ElementType, MouseEventHandler, ReactNode, RefCallback } from 'react';
-import { Props as FloaterProps } from 'react-floater';
 import { PartialDeep, SetRequired, Simplify } from 'type-fest';
 
 import type { StoreInstance } from '~/modules/store';
@@ -35,10 +34,6 @@ export type BaseProps = {
    * @default false
    */
   disableScrolling?: boolean;
-  /**
-   * Options to be passed to react-floater
-   */
-  floaterProps?: Partial<FloaterProps>;
   /**
    * Hide the Back button.
    * @default false
@@ -237,10 +232,6 @@ export type Step = Simplify<
      */
     event?: 'click' | 'hover';
     /**
-     * Options to be passed to react-floater
-     */
-    floaterProps?: FloaterProps;
-    /**
      * Hide the tooltip's footer.
      * @default false
      */
@@ -379,4 +370,3 @@ export type TooltipRenderProps = Simplify<
   }
 >;
 
-export type { Props as FloaterProps } from 'react-floater';

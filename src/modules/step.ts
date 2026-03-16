@@ -1,12 +1,11 @@
 import deepmerge from 'deepmerge';
 import is from 'is-lite';
 
-import { defaultFloaterProps, defaultLocale, defaultStep } from '~/defaults';
+import { defaultLocale, defaultStep } from '~/defaults';
 import getStyles from '~/styles';
 import { Props, Step, StepMerged } from '~/types';
 
-import { getElement, hasCustomScrollParent } from './dom';
-import { log, omit, pick } from './helpers';
+import { log, pick } from './helpers';
 
 function getTourProps(props: Props) {
   return pick(
@@ -17,7 +16,6 @@ function getTourProps(props: Props) {
     'disableOverlayClose',
     'disableScrolling',
     'disableScrollParentFix',
-    'floaterProps',
     'hideBackButton',
     'hideCloseButton',
     'locale',
@@ -37,38 +35,11 @@ export function getMergedStep(props: Props, currentStep?: Step): StepMerged {
   }) as StepMerged;
 
   const mergedStyles = getStyles(props, mergedStep);
-  const scrollParent = hasCustomScrollParent(
-    getElement(mergedStep.target),
-    mergedStep.disableScrollParentFix,
-  );
-  const floaterProps = deepmerge.all([
-    defaultFloaterProps,
-    props.floaterProps ?? {},
-    mergedStep.floaterProps ?? {},
-  ]) as any;
-
-  // Set react-floater props
-  floaterProps.offset = mergedStep.offset;
-  floaterProps.styles = deepmerge(floaterProps.styles ?? {}, mergedStyles.floaterStyles);
-
-  floaterProps.offset += props.spotlightPadding ?? mergedStep.spotlightPadding ?? 0;
-
-  if (mergedStep.placementBeacon && floaterProps.wrapperOptions) {
-    floaterProps.wrapperOptions.placement = mergedStep.placementBeacon;
-  }
-
-  if (scrollParent && floaterProps.modifiers?.preventOverflow) {
-    floaterProps.modifiers.preventOverflow.options = {
-      ...floaterProps.modifiers.preventOverflow.options,
-      boundary: 'window',
-    };
-  }
 
   return {
     ...mergedStep,
     locale: deepmerge.all([defaultLocale, props.locale ?? {}, mergedStep.locale || {}]),
-    floaterProps,
-    styles: omit(mergedStyles, 'floaterStyles'),
+    styles: mergedStyles,
   };
 }
 

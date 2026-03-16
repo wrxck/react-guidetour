@@ -1,6 +1,6 @@
 {
   "name": "@matthesketh/react-guidetour",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "React 19 guided tour component. Modernised fork of react-joyride by Gil Barbara.",
   "author": "Matt Hesketh",
   "license": "MIT",
@@ -34,27 +34,31 @@
     "react-dom": "^19.0.0"
   },
   "dependencies": {
-    "@gilbarbara/deep-equal": "^0.3.1",
+    "@floating-ui/react": "^0.27.19",
+    "@gilbarbara/deep-equal": "^0.4.1",
     "deep-diff": "^1.0.2",
     "deepmerge": "^4.3.1",
-    "is-lite": "^1.2.1",
-    "react-floater": "^0.10.0",
+    "is-lite": "^2.0.0",
     "react-innertext": "^1.1.5",
     "scroll": "^3.0.1",
     "scrollparent": "^2.1.0",
     "tree-changes": "^0.11.2",
-    "type-fest": "^4.27.0"
+    "type-fest": "^5.4.4"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^25.5.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/scroll": "^3.0.3",
     "@types/scrollparent": "^2.0.3",
+    "jsdom": "^25.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tsup": "^8.3.5",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vitest": "^3.2.4"
   },
   "tsup": {
     "dts": true,
@@ -71,6 +75,8 @@
   },
   "scripts": {
     "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "watch": "tsup --watch"
   }
 }
